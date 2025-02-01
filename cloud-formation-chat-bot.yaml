@@ -1,0 +1,99 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "CloudFormation template for a chatbot with API Gateway, Lambda, DynamoDB, and optional S3."
+
+Resources:
+  ChatbotLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: ChatbotLambda
+      Runtime: python3.9
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt ChatbotLambdaExecutionRole.Arn
+      Code:
+        S3Bucket: chatbot-code-bucket
+        S3Key: chatbot_lambda.zip
+      Environment:
+        Variables:
+          WEATHER_API_KEY: !Ref WeatherApiKey
+          DYNAMODB_TABLE: !Ref ChatbotDynamoDB
+
+  ChatbotLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [lambda.amazonaws.com]
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaBasicExecution
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "arn:aws:logs:*:*:*"
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                Resource: !GetAtt ChatbotDynamoDB.Arn
+              - Effect: Allow
+                Action:
+                  - ssm:GetParameter
+                Resource: arn:aws:ssm:us-east-1:674082942734:parameter/chatbot/weatherApiKey
+
+  ChatbotApiGateway:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: ChatbotApi
+      Description: API Gateway for chatbot
+
+  ChatbotResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt ChatbotApiGateway.RootResourceId
+      PathPart: chatbot
+      RestApiId: !Ref ChatbotApiGateway
+
+  ChatbotMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ChatbotApiGateway
+      ResourceId: !Ref ChatbotResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ChatbotLambda.Arn}/invocations"
+
+  ChatbotLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ChatbotLambda
+      Principal: apigateway.amazonaws.com
+
+  ChatbotDynamoDB:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ChatbotQueries
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+  WeatherApiKey:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /chatbot/weatherApiKey
+      Type: String
+      Value: 836656a09612bbf0da5de7d080c29b12

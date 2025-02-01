@@ -1,0 +1,40 @@
+# Ignore all files by default
+*
+
+# Allow only the essential files
+!cloud-formation-chat-bot.yaml
+!lambda_function.py
+!README.md
+
+# Ignore virtual environments
+venv/
+.env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore dependency-related files
+requirement.txt
+Pipfile
+Pipfile.lock
+poetry.lock
+
+# Ignore logs and caches
+logs/
+*.log
+.cache/
+.mypy_cache/
+.pytest_cache/
+
+# Ignore AWS zip packages
+chatbot_lambda.zip
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.iml
+
+# Ignore OS-generated files
+.DS_Store
+Thumbs.db
