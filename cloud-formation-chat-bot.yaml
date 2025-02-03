@@ -45,7 +45,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - ssm:GetParameter
-                Resource: arn:aws:ssm:us-east-1:674082942734:parameter/chatbot/weatherApiKey
+                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/chatbot/weatherApiKey"
 
   ChatbotApiGateway:
     Type: AWS::ApiGateway::RestApi
@@ -90,3 +90,11 @@ Resources:
         - AttributeName: id
           KeyType: HASH
       BillingMode: PAY_PER_REQUEST
+
+  ChatbotApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - ChatbotMethod
+    Properties:
+      RestApiId: !Ref ChatbotApiGateway
+      StageName: prod

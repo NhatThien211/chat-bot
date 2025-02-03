@@ -22,7 +22,7 @@ def get_weather(city):
     print(f"Fetching weather for {city}")  # Debug log
     params = {"q": city, "appid": WEATHER_API_KEY, "units": "metric"}
     response = requests.get(WEATHER_API_URL, params=params)
-    print(f"Weather API Response: {response}")  # Debug log
+    print(f"Weather API Response: {response.json()}")  # Debug log
     if response.status_code == 200:
         data = response.json()
         return f"Current weather in {city}: {data['weather'][0]['description']}, {data['main']['temp']}°C."

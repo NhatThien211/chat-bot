@@ -45,17 +45,16 @@ Compress-Archive -Path * -DestinationPath chatbot_lambda.zip
 ```
 
 ### **3. Upload source code to AWS S3 and configure API Key**
-3.1. Upload the zip file to an S3 bucket `chatbot-code-bucket`:
+3.1. Create and upload the zip file to an S3 bucket `chatbot-code-bucket`:
+```sh
+aws s3 mb s3://chatbot-code-bucket
+```
 ```sh
 aws s3 cp chatbot_lambda.zip s3://chatbot-code-bucket/
 ```
-3.2. Create parameter store `/chatbot/weatherApiKey` and add API to `WEATHER_API_KEY`:
+3.2. Create parameter store `/chatbot/weatherApiKey` and add Your Weather API KEY (Created from https://openweathermap.org/api):
 ```sh
-aws ssm put-parameter \
-  --name "/chatbot/weatherApiKey" \
-  --value "WEATHER_API_KEY" \
-  --type "String" \
-  --overwrite
+aws ssm put-parameter --name "/chatbot/weatherApiKey" --value "YOUR_WEATHER_API_KEY" --type "String" --overwrite
 ```
 
 ### **4. Deploy with AWS CloudFormation**
@@ -68,11 +67,14 @@ aws cloudformation create-stack --stack-name chatbot-stack --template-body file:
 This chatbot is deployed using **AWS API Gateway**:
 - API Gateway is configured for **POST** requests
 - The Lambda function is integrated with API Gateway
+- API information:
+    + Invoke URL: Created API gateway id -> stage -> Invoke URL
+    + Method: POST
 
 ## **Usage**
-#### **Example Request**
+#### **1. Example Request**
 ```sh
-curl --location --request POST 'https://your-api-id.execute-api.us-east-1.amazonaws.com/staging/chatbot' \
+curl --location --request POST 'your_invoke_url/chatbot' \
 --header 'Content-Type: application/json' \
 --data '{
     "query": "tell me a joke"
@@ -83,6 +85,22 @@ curl --location --request POST 'https://your-api-id.execute-api.us-east-1.amazon
 ```json
 {
     "response": "Why did the scarecrow win an award? Because he was outstanding in his field!"
+}
+```
+
+#### **2. Example Request**
+```sh
+curl --location --request POST 'your_invoke_url/chatbot' \
+--header 'Content-Type: application/json' \
+--data '{
+    "query": "what is the weather in London"
+}'
+```
+
+#### **Example Response**
+```json
+{
+    "response": "Current weather in london: broken clouds, 0.58°C."
 }
 ```
 
