@@ -14,7 +14,7 @@ Resources:
         S3Key: chatbot_lambda.zip
       Environment:
         Variables:
-          WEATHER_API_KEY: !Ref WeatherApiKey
+          WEATHER_API_KEY: !Sub "{{resolve:ssm:/chatbot/weatherApiKey:1}}"
           DYNAMODB_TABLE: !Ref ChatbotDynamoDB
 
   ChatbotLambdaExecutionRole:
@@ -45,7 +45,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - ssm:GetParameter
-                Resource: arn:aws:ssm:us-east-1:674082942734:parameter/chatbot/weatherApiKey
+                Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/chatbot/weatherApiKey"
 
   ChatbotApiGateway:
     Type: AWS::ApiGateway::RestApi
@@ -91,9 +91,10 @@ Resources:
           KeyType: HASH
       BillingMode: PAY_PER_REQUEST
 
-  WeatherApiKey:
-    Type: AWS::SSM::Parameter
+  ChatbotApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - ChatbotMethod
     Properties:
-      Name: /chatbot/weatherApiKey
-      Type: String
-      Value: 836656a09612bbf0da5de7d080c29b12
+      RestApiId: !Ref ChatbotApiGateway
+      StageName: prod
