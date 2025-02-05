@@ -6,7 +6,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: ChatbotLambda
-      Runtime: python3.9
+      Runtime: python3.13
       Handler: lambda_function.lambda_handler
       Role: !GetAtt ChatbotLambdaExecutionRole.Arn
       Code:

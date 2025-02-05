@@ -15,6 +15,7 @@ This chatbot system is built using AWS services and follows the architecture bel
 2. **AWS Lambda**: Processes user queries, fetches data from external APIs, and interacts with DynamoDB.
 3. **DynamoDB**: Stores chatbot interaction logs and user queries.
 4. **AWS S3**: Stores the chatbot's Lambda function code.
+4. **AWS Parameter Store**: Stores the weather API key.
 5. **AWS CloudFormation**: Automates the deployment and management of all AWS resources.
 
 ### **Architecture Diagram**
@@ -28,39 +29,45 @@ graph TD;
     Lambda -->|Response| APIGateway
     APIGateway -->|HTTP Response| User
     Lambda -->|Code Storage| S3[AWS S3]
+    Lambda -->|API Key Storage| PMS[AWS Parameter Store]
 ```
 
 ## 🛠️ Setup Instructions
 
 ### **1. Install Dependencies**
-Ensure you have Python installed, then install required dependencies from `requirement.txt`:
+1.1. Ensure you have Python installed, then install required dependencies from `requirement.txt`:
 ```sh
 pip install -r requirement.txt -t .
 ```
+1.2. Ensure you have AWS CLI installed
 
-### **2. Create Source Code Zip File**
-Run the following command in PowerShell to package the source code:
-```sh
-Compress-Archive -Path * -DestinationPath chatbot_lambda.zip
-```
-
-### **3. Upload source code to AWS S3 and configure API Key**
-3.1. Create and upload the zip file to an S3 bucket `chatbot-code-bucket`:
-```sh
-aws s3 mb s3://chatbot-code-bucket
-```
-```sh
-aws s3 cp chatbot_lambda.zip s3://chatbot-code-bucket/
-```
-3.2. Create parameter store `/chatbot/weatherApiKey` and add Your Weather API KEY (Created from https://openweathermap.org/api):
+### **2. Create parameter store**
+Create parameter store `/chatbot/weatherApiKey` and add Your Weather API KEY (Created from https://openweathermap.org/api):
 ```sh
 aws ssm put-parameter --name "/chatbot/weatherApiKey" --value "YOUR_WEATHER_API_KEY" --type "String" --overwrite
 ```
 
-### **4. Deploy with AWS CloudFormation**
-Create an AWS CloudFormation stack using the provided template:
+### **3. Run Deployment**
+### For Window: ###
+#### 3.1. Open PowerShell as Administrator ####
+#### 3.2. Grant execute permissions ####
 ```sh
-aws cloudformation create-stack --stack-name chatbot-stack --template-body file://cloud-formation-chat-bot.yaml --capabilities CAPABILITY_NAMED_IAM
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+```
+#### 3.3. Run the deployment script ####
+```sh
+.\deploy.ps1
+```
+
+### For MacOS/Linux: ###
+#### 3.1. Open Terminal ####
+#### 3.2. Grant execute permissions ####
+```sh
+chmod +x deploy.sh
+```
+#### 3.3. Run the deployment script ####
+```sh
+./deploy.sh
 ```
 
 ## **API Deployment**
@@ -68,7 +75,7 @@ This chatbot is deployed using **AWS API Gateway**:
 - API Gateway is configured for **POST** requests
 - The Lambda function is integrated with API Gateway
 - API information:
-    + Invoke URL: Created API gateway id -> stage -> Invoke URL
+    + Invoke URL: Created API gateway id -> Stages -> Invoke URL
     + Method: POST
 
 ## **Usage**
