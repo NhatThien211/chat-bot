@@ -5,6 +5,7 @@
 !cloud-formation-chat-bot.yaml
 !lambda_function.py
 !README.md
+!deploy.*
 
 # Ignore virtual environments
 venv/

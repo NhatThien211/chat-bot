@@ -4,10 +4,11 @@ import boto3
 import requests
 import uuid
 from datetime import datetime
+from typing import Optional, Dict
 
 # Load environment variables
-WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
-DYNAMODB_TABLE = os.getenv("DYNAMODB_TABLE")
+WEATHER_API_KEY: str = os.getenv("WEATHER_API_KEY", "")
+DYNAMODB_TABLE: str = os.getenv("DYNAMODB_TABLE", "")
 
 # Initialize AWS services
 dynamodb = boto3.resource("dynamodb")
@@ -17,7 +18,7 @@ table = dynamodb.Table(DYNAMODB_TABLE)
 WEATHER_API_URL = "http://api.openweathermap.org/data/2.5/weather"
 JOKE_API_URL = "https://official-joke-api.appspot.com/random_joke"
 
-def get_weather(city):
+def get_weather(city: str) -> str:
     """Fetch current weather data for a given city."""
     print(f"Fetching weather for {city}")  # Debug log
     params = {"q": city, "appid": WEATHER_API_KEY, "units": "metric"}
@@ -28,7 +29,7 @@ def get_weather(city):
         return f"Current weather in {city}: {data['weather'][0]['description']}, {data['main']['temp']}°C."
     return "Sorry, I couldn't retrieve the weather for that location."
 
-def get_joke():
+def get_joke() -> str:
     """Fetch a random joke."""
     response = requests.get(JOKE_API_URL)
     if response.status_code == 200:
@@ -36,7 +37,7 @@ def get_joke():
         return f"{data['setup']} {data['punchline']}"
     return "Sorry, I couldn't fetch a joke at the moment."
 
-def log_query(user_query, response_text):
+def log_query(user_query: str, response_text: str) -> None:
     """Log the chatbot query and response in DynamoDB."""
     table.put_item(
         Item={
@@ -47,11 +48,11 @@ def log_query(user_query, response_text):
         }
     )
 
-def lambda_handler(event, context):
+def lambda_handler(event: Dict[str, str], context: Optional[Dict[str, str]]) -> Dict[str, str]:
     """Handle incoming API Gateway requests."""
     try:
-        body = json.loads(event["body"])
-        user_query = body.get("query", "").lower()
+        body: Dict[str, str] = json.loads(event["body"])
+        user_query: str = body.get("query", "").lower()
 
         # Determine response based on query
         if "weather" in user_query:
