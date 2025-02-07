@@ -45,8 +45,6 @@ pip install -r requirement.txt -t .
 Create parameter store `weatherApiKey` and add Your Weather API KEY (Created from https://openweathermap.org/api):
 ```sh
 aws secretsmanager create-secret --name "weatherApiKey" --secret-string '{\"API_KEY\":\"YOUR_KEY_HERE\"}'
- --overwrite
-
 ```
 
 ### **3. Run Deployment**
