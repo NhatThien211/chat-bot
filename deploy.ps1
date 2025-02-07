@@ -3,6 +3,7 @@ $zipFileName = "chatbot_lambda.zip"
 $s3BucketName = "chatbot-code-bucket"
 $stackName = "Chatbot-stack"
 $templatePath = "file://cloud-formation-chat-bot.yaml"
+$prefix = "prefix_v1"
 
 Write-Host "Starting deployment..."
 
@@ -44,7 +45,8 @@ try {
         aws cloudformation create-stack `
             --stack-name $stackName `
             --template-body $templatePath `
-            --capabilities CAPABILITY_NAMED_IAM
+            --capabilities CAPABILITY_NAMED_IAM `
+            --parameters ParameterKey=Prefix,ParameterValue="$prefix"
 
         Write-Host "Waiting for stack creation to complete..."
         aws cloudformation wait stack-create-complete --stack-name $stackName
@@ -53,7 +55,8 @@ try {
         aws cloudformation update-stack `
             --stack-name $stackName `
             --template-body $templatePath `
-            --capabilities CAPABILITY_NAMED_IAM
+            --capabilities CAPABILITY_NAMED_IAM `
+            --parameters ParameterKey=Prefix,ParameterValue="$prefix"
 
         Write-Host "Waiting for stack update to complete..."
         aws cloudformation wait stack-update-complete --stack-name $stackName
