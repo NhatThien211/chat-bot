@@ -5,6 +5,7 @@ ZIP_FILE="chatbot_lambda.zip"
 S3_BUCKET="chatbot-code-bucket"
 STACK_NAME="Chatbot-stack"
 TEMPLATE_PATH="file://cloud-formation-chat-bot.yaml"
+PREFIX = "prefix_v1"
 
 echo "Starting deployment..."
 
@@ -39,7 +40,8 @@ if ! aws cloudformation describe-stacks --stack-name "$STACK_NAME" > /dev/null 2
   aws cloudformation create-stack \
     --stack-name "$STACK_NAME" \
     --template-body "$TEMPLATE_PATH" \
-    --capabilities CAPABILITY_NAMED_IAM
+    --capabilities CAPABILITY_NAMED_IAM \
+    --parameters ParameterKey=Prefix,ParameterValue="$TEMPLATE_PATH"
 
   echo "Waiting for stack creation to complete..."
   aws cloudformation wait stack-create-complete --stack-name "$STACK_NAME"
@@ -48,7 +50,8 @@ else
   aws cloudformation update-stack \
     --stack-name "$STACK_NAME" \
     --template-body "$TEMPLATE_PATH" \
-    --capabilities CAPABILITY_NAMED_IAM
+    --capabilities CAPABILITY_NAMED_IAM \
+    --parameters ParameterKey=Prefix,ParameterValue="$TEMPLATE_PATH"
 
   echo "Waiting for stack update to complete..."
   aws cloudformation wait stack-update-complete --stack-name "$STACK_NAME"

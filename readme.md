@@ -15,7 +15,7 @@ This chatbot system is built using AWS services and follows the architecture bel
 2. **AWS Lambda**: Processes user queries, fetches data from external APIs, and interacts with DynamoDB.
 3. **DynamoDB**: Stores chatbot interaction logs and user queries.
 4. **AWS S3**: Stores the chatbot's Lambda function code.
-4. **AWS Parameter Store**: Stores the weather API key.
+4. **AWS Secret Manager**: Stores the weather API key.
 5. **AWS CloudFormation**: Automates the deployment and management of all AWS resources.
 
 ### **Architecture Diagram**
@@ -29,7 +29,7 @@ graph TD;
     Lambda -->|Response| APIGateway
     APIGateway -->|HTTP Response| User
     Lambda -->|Code Storage| S3[AWS S3]
-    Lambda -->|API Key Storage| PMS[AWS Parameter Store]
+    Lambda -->|API Key Storage| PMS[AWS Secret Manager]
 ```
 
 ## 🛠️ Setup Instructions
@@ -42,9 +42,11 @@ pip install -r requirement.txt -t .
 1.2. Ensure you have AWS CLI installed
 
 ### **2. Create parameter store**
-Create parameter store `/chatbot/weatherApiKey` and add Your Weather API KEY (Created from https://openweathermap.org/api):
+Create parameter store `weatherApiKey` and add Your Weather API KEY (Created from https://openweathermap.org/api):
 ```sh
-aws ssm put-parameter --name "/chatbot/weatherApiKey" --value "YOUR_WEATHER_API_KEY" --type "String" --overwrite
+aws secretsmanager create-secret --name "weatherApiKey" --secret-string '{\"API_KEY\":\"YOUR_KEY_HERE\"}'
+ --overwrite
+
 ```
 
 ### **3. Run Deployment**
