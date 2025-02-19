@@ -18,6 +18,9 @@ table = dynamodb.Table(DYNAMODB_TABLE)
 WEATHER_API_URL = "http://api.openweathermap.org/data/2.5/weather"
 JOKE_API_URL = "https://official-joke-api.appspot.com/random_joke"
 
+def remove_special_characters(city: str):
+    return "".join(char for char in city if char.isalnum() or char.isspace())
+
 def get_weather(city: str) -> str:
     """Fetch current weather data for a given city."""
     print(f"Fetching weather for {city}")  # Debug log
@@ -57,7 +60,7 @@ def lambda_handler(event: Dict[str, str], context: Optional[Dict[str, str]]) -> 
         # Determine response based on query
         if "weather" in user_query:
             city = user_query.split("in")[-1].strip() if "in" in user_query else "London"
-            response_text = get_weather(city)
+            response_text = get_weather(remove_special_characters(city))
         elif "joke" in user_query:
             response_text = get_joke()
         else:
@@ -70,11 +73,19 @@ def lambda_handler(event: Dict[str, str], context: Optional[Dict[str, str]]) -> 
         return {
             "statusCode": 200,
             "body": json.dumps({"response": response_text}),
-            "headers": {"Content-Type": "application/json"}
+            "headers": {"Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",  # Allow all origins, you can restrict this
+                "Access-Control-Allow-Methods": "OPTIONS, POST, GET",  # Allow specific HTTP methods
+                "Access-Control-Allow-Headers": "Content-Type",  # Allow specific headers}
+        }
         }
     except Exception as e:
         return {
             "statusCode": 500,
             "body": json.dumps({"error": str(e)}),
-            "headers": {"Content-Type": "application/json"}
+            "headers":  {"Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",  # Allow all origins, you can restrict this
+                "Access-Control-Allow-Methods": "OPTIONS, POST, GET",  # Allow specific HTTP methods
+                "Access-Control-Allow-Headers": "Content-Type",  # Allow specific headers}
+        }
         }
