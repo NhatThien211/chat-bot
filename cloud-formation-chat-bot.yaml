@@ -14,11 +14,14 @@ Resources:
       Runtime: python3.13
       Handler: lambda_function.lambda_handler
       Role: !GetAtt ChatbotLambdaExecutionRole.Arn
+      Timeout: 30
       Code:
         S3Bucket: chatbot-code-bucket
         S3Key: chatbot_lambda.zip
       Environment:
         Variables:
+          LLM_MODEL: "mistralai/mistral-7b-instruct:free"
+          OPEN_ROUTER_API_KEY: !Sub "{{resolve:secretsmanager:openRouterApiKey:SecretString:API_KEY}}"
           WEATHER_API_KEY: !Sub "{{resolve:secretsmanager:weatherApiKey:SecretString:API_KEY}}"
           DYNAMODB_TABLE: !Ref ChatbotDynamoDB
 
@@ -100,6 +103,33 @@ Resources:
     Type: AWS::ApiGateway::Deployment
     DependsOn:
       - ChatbotMethod
+      - ChatbotOptionsMethod
     Properties:
       RestApiId: !Ref ChatbotApiGateway
       StageName: prod
+  
+  ChatbotOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ChatbotApiGateway
+      ResourceId: !Ref ChatbotResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        IntegrationResponses:
+          - StatusCode: "200"
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Methods: "'POST, OPTIONS'"
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type, Authorization'"
+            ResponseTemplates:
+              application/json: ""
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+      MethodResponses:
+        - StatusCode: "200"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Headers: true

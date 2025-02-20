@@ -47,6 +47,11 @@ Create parameter store `weatherApiKey` and add Your Weather API KEY (Created fro
 aws secretsmanager create-secret --name "weatherApiKey" --secret-string '{\"API_KEY\":\"YOUR_KEY_HERE\"}'
 ```
 
+Create parameter store `openRouterApiKey` and add Your Open Router API KEY (Created from https://openrouter.ai):
+```sh
+aws secretsmanager create-secret --name "openRouterApiKey" --secret-string '{\"API_KEY\":\"YOUR_KEY_HERE\"}'
+```
+
 ### **3. Run Deployment**
 ### For Window: ###
 #### 3.1. Open PowerShell as Administrator ####
